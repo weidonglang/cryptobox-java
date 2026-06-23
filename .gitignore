@@ -1,0 +1,11 @@
+/target/
+/dist/
+/build/
+*.jar
+*.zip
+*.class
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.crbx
