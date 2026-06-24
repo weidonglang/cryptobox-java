@@ -1,5 +1,7 @@
 # Cryptobox Java User Guide
 
+**Version: 1.0.0**
+
 ## Overview
 
 Cryptobox Java is a local file encryption and decryption command-line tool using AES-256-GCM authenticated encryption. It supports key derivation (Argon2id / PBKDF2), integrity verification, recursive directory encryption/decryption, and container format validation.

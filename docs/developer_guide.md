@@ -1,5 +1,7 @@
 # Developer Guide
 
+**Version: 1.0.0**
+
 ## Overview
 
 Cryptobox Java is a local file encryption CLI tool built with Java 17+ and Maven. It uses AES-256-GCM for authenticated encryption with Argon2id/PBKDF2 key derivation.

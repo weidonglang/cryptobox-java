@@ -2,7 +2,36 @@
 
 **Version: 1.0.0**
 
-A local file encryption CLI tool using AES-256-GCM with Argon2id/PBKDF2 key derivation, supporting directory recursion and integrity verification. Designed for offline personal data protection.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Java](https://img.shields.io/badge/Java-17%2B-blue)](https://adoptium.net/)
+[![Maven](https://img.shields.io/badge/Maven-3.8%2B-red)](https://maven.apache.org/)
+
+Cryptobox Java is a **local file encryption and decryption CLI tool** using AES-256-GCM authenticated encryption with Argon2id/PBKDF2 key derivation. It supports directory recursion, integrity verification, and a standardized container format — designed for **offline personal data protection** with zero network dependencies.
+
+## Project Overview
+
+| Attribute | Value |
+|-----------|-------|
+| **Project** | cryptobox-java |
+| **Version** | 1.0.0 |
+| **Language** | Java 17+ |
+| **Build** | Maven |
+| **Encryption** | AES-256-GCM |
+| **Key Derivation** | Argon2id / PBKDF2 |
+| **License** | MIT |
+| **Security** | Zero network connections, memory cleanup |
+
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Commands](#commands)
+- [Security](#security)
+- [Container Format](#container-format)
+- [Build](#build)
+- [Project Structure](#project-structure)
+- [Documentation](#documentation)
+- [License](#license)
 
 ## Features
 
@@ -79,6 +108,45 @@ See [Container Format](docs/container_format.md) for full specification.
 mvn clean package
 java -jar target/cryptobox.jar --help
 ```
+
+## Project Structure
+
+```
+cryptobox-java/
+  src/main/java/com/cryptobox/
+    Cryptobox.java          # Main entry point
+    Cli.java                # picocli command definitions
+    Config.java             # Configuration constants
+    Errors.java             # Custom exception hierarchy
+    ContainerParser.java    # Container format serialization/deserialization
+    KeyDerivation.java      # Argon2id / PBKDF2 implementation
+    CryptoEngine.java       # AES-256-GCM encryption/decryption
+    FileProcessor.java      # File and directory recursive processing
+    Integrity.java          # SHA256 hash computation
+  src/test/java/com/cryptobox/
+    CliHelpTest.java        # CLI help and command tests
+    ContainerTest.java      # Container format tests
+    KeyDerivationTest.java  # Key derivation tests
+    CryptoEngineTest.java   # Encryption engine tests
+    FileProcessorTest.java  # File processing tests
+    IntegrityTest.java      # SHA256 hash tests
+    EdgeCaseTest.java       # Edge case and error handling tests
+  scripts/                  # PowerShell validation scripts
+  docs/                     # Documentation
+  examples/                 # Example files for testing
+  testdata/                 # Pre-generated test containers
+  dist/                     # Release packages (not committed)
+```
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [User Guide](docs/user_guide.md) | Complete CLI command reference with examples |
+| [Developer Guide](docs/developer_guide.md) | Architecture, build, and contribution guide |
+| [Container Format](docs/container_format.md) | Binary container format specification |
+| [Security Boundaries](docs/security_boundaries.md) | Security requirements and constraints |
+| [Release Notes](docs/release_notes.md) | Version history and changelog |
 
 ## License
 
