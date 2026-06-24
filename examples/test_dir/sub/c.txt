@@ -1,0 +1,11 @@
+This is file C in the subdirectory.
+It is used for recursive directory encryption testing.
+
+Nested directory structure test:
+- test_dir/
+  - a.txt
+  - b.txt
+  - sub/
+    - c.txt
+
+Path: examples/test_dir/sub/c.txt

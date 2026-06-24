@@ -1,0 +1,8 @@
+Hello, Cryptobox Java!
+This is a sample plaintext file for testing encryption and decryption operations.
+
+The quick brown fox jumps over the lazy dog.
+1234567890 !@#$%^&*()_+-=[]{}|;':",./<>?
+Unicode support: 你好，世界！日本語 русский язык
+
+End of sample file.

@@ -1,0 +1,30 @@
+{
+  "appName": "Cryptobox Java",
+  "version": "1.0.0",
+  "settings": {
+    "algorithm": "AES-256-GCM",
+    "kdf": "Argon2id",
+    "memory": 65536,
+    "iterations": 3,
+    "parallelism": 4
+  },
+  "users": [
+    {
+      "id": 1,
+      "name": "Alice",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "name": "Bob",
+      "role": "user"
+    }
+  ],
+  "features": {
+    "encryption": true,
+    "decryption": true,
+    "verify": true,
+    "hash": true,
+    "directoryRecursion": true
+  }
+}
