@@ -15,6 +15,7 @@
     powershell -File scripts/package_release.ps1
 #>
 
+$ScriptVersion = "1.0.0"
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $ProjectRoot

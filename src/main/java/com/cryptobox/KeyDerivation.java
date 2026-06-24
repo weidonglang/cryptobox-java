@@ -58,6 +58,12 @@ public final class KeyDerivation {
      * @throws Errors.KeyDerivationException if derivation fails
      */
     public static byte[] deriveKeyFromPassword(char[] password, byte[] salt, byte kdfAlgorithm) {
+        if (password == null) {
+            throw new Errors.KeyDerivationException("Password must not be null");
+        }
+        if (salt == null) {
+            throw new Errors.KeyDerivationException("Salt must not be null");
+        }
         try {
             byte[] key;
             if (kdfAlgorithm == Config.KDF_ARGON2ID) {

@@ -44,8 +44,17 @@ public final class CryptoEngine {
      * @throws Errors.CryptoException if key size is not 32 bytes
      */
     public static byte[] encrypt(byte[] plaintext, byte[] key, byte[] iv) {
+        if (key == null) {
+            throw new Errors.CryptoException("Encryption key must not be null");
+        }
         if (key.length != Config.KEY_SIZE) {
-            throw new Errors.CryptoException("Invalid key size: expected " + Config.KEY_SIZE + " bytes");
+            throw new Errors.CryptoException("Invalid key size: expected " + Config.KEY_SIZE + " bytes, got " + key.length);
+        }
+        if (iv == null) {
+            throw new Errors.CryptoException("IV must not be null");
+        }
+        if (iv.length != Config.IV_SIZE) {
+            throw new Errors.CryptoException("Invalid IV size: expected " + Config.IV_SIZE + " bytes, got " + iv.length);
         }
         try {
             SecretKey secretKey = new SecretKeySpec(key, "AES");

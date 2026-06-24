@@ -32,10 +32,17 @@ $dirs = @(
 # Check if any tracked files match artifact patterns
 $trackedFiles = git ls-files 2>&1
 foreach ($file in $trackedFiles) {
-    foreach ($pattern in $patterns) {
-        if ($file -like $pattern) {
-            Write-Host ("[FAIL] Artifact file tracked: " + $file) -ForegroundColor Red
-            $failed = $true
+    $skip = $false
+    # Allow *.crbx in testdata/ (test vectors are intentionally tracked)
+    if ($file -like "*.crbx" -and $file -like "testdata/*") {
+        $skip = $true
+    }
+    if (-not $skip) {
+        foreach ($pattern in $patterns) {
+            if ($file -like $pattern) {
+                Write-Host ("[FAIL] Artifact file tracked: " + $file) -ForegroundColor Red
+                $failed = $true
+            }
         }
     }
     foreach ($dir in $dirs) {

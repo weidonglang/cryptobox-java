@@ -445,12 +445,25 @@ public class Cli implements Callable<Integer> {
         if (!Files.isReadable(path)) {
             throw new Errors.FileOperationException("Key file not readable (permission denied): " + keyPath);
         }
+        // Read all lines, skip comments (lines starting with #) and blank lines
         String content = Files.readString(path).trim();
         if (content.isEmpty()) {
             throw new Errors.FileOperationException("Key file is empty: " + keyPath);
         }
+        // Take only the last non-comment line
+        String[] lines = content.split("\\R");
+        String keyLine = null;
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
+                keyLine = trimmed;
+            }
+        }
+        if (keyLine == null || keyLine.isEmpty()) {
+            throw new Errors.FileOperationException("No valid key data found in key file: " + keyPath);
+        }
         try {
-            return Base64.getDecoder().decode(content);
+            return Base64.getDecoder().decode(keyLine);
         } catch (IllegalArgumentException e) {
             throw new Errors.FileOperationException("Key file contains invalid Base64 data: " + keyPath);
         }

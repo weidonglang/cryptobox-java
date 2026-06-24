@@ -61,6 +61,9 @@ public final class Integrity {
      * @return hexadecimal SHA-256 hash string
      */
     public static String computeHash(byte[] data) {
+        if (data == null) {
+            throw new Errors.CryptoException("Cannot compute hash of null data");
+        }
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(data);

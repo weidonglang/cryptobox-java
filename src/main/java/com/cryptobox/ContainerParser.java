@@ -128,7 +128,7 @@ public final class ContainerParser {
         int ctLen = buf.getInt();
         pos += Config.CIPHERTEXT_LENGTH_FIELD_SIZE;
 
-        if (ctLen <= 0 || pos + ctLen > data.length) {
+        if (ctLen < 0 || pos + ctLen > data.length) {
             throw new Errors.ContainerFormatException("Invalid ciphertext length: " + ctLen);
         }
 
