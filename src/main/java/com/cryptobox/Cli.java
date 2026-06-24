@@ -124,11 +124,21 @@ public class Cli implements Callable<Integer> {
         @Override
         public Integer call() {
             try {
-                byte[] key = resolveKey();
+                Path input = Paths.get(inputPath);
+                Path output = Paths.get(outputPath);
+
+                if (usePassword) {
+                    return encryptWithPassword(input, output);
+                }
+
+                if (keyPath == null) {
+                    System.err.println("Either --key or --password must be specified.");
+                    return 1;
+                }
+
+                byte[] key = loadKeyFromFile(keyPath);
                 try {
                     FileProcessor processor = new FileProcessor();
-                    Path input = Paths.get(inputPath);
-                    Path output = Paths.get(outputPath);
 
                     if (Files.isDirectory(input) && recursive) {
                         processor.encryptDirectory(input, output, key, excludePattern);
@@ -150,15 +160,56 @@ public class Cli implements Callable<Integer> {
             }
         }
 
-        private byte[] resolveKey() throws IOException {
-            if (usePassword) {
-                return readPasswordAndDeriveKey();
+        /**
+         * Handles password-based encryption using CryptoEngine and ContainerParser directly.
+         * Password key derivation salt is stored in the container for decryption.
+         */
+        private int encryptWithPassword(Path input, Path output) throws IOException {
+            java.io.Console console = System.console();
+            if (console == null) {
+                System.err.println("No console available for password input");
+                return 1;
             }
-            if (keyPath == null) {
-                System.err.println("Either --key or --password must be specified.");
-                System.exit(1);
+
+            char[] password1 = console.readPassword("Enter password: ");
+            char[] password2 = console.readPassword("Confirm password: ");
+
+            if (!java.util.Arrays.equals(password1, password2)) {
+                java.util.Arrays.fill(password1, '\0');
+                java.util.Arrays.fill(password2, '\0');
+                System.err.println("Passwords do not match");
+                return 1;
             }
-            return loadKeyFromFile(keyPath);
+            java.util.Arrays.fill(password2, '\0');
+
+            try {
+                // Derive key from password with a fresh salt
+                byte[] salt = KeyDerivation.generateSalt();
+                byte[] derivedKey = KeyDerivation.deriveKeyFromPassword(password1, salt);
+
+                try {
+                    if (!Files.exists(input)) {
+                        System.err.println("Input file not found: " + input);
+                        return 1;
+                    }
+
+                    byte[] plaintext = Files.readAllBytes(input);
+                    byte[] iv = CryptoEngine.generateIv();
+                    byte[] ciphertext = CryptoEngine.encrypt(plaintext, derivedKey, iv);
+                    byte[] kdfId = {0x00, Config.KDF_PBKDF2};
+                    byte[] container = ContainerParser.build(kdfId, salt, iv, ciphertext);
+
+                    Files.createDirectories(output.getParent());
+                    Files.write(output, container);
+
+                    System.out.println("Encryption completed.");
+                    return 0;
+                } finally {
+                    clearKey(derivedKey);
+                }
+            } finally {
+                java.util.Arrays.fill(password1, '\0');
+            }
         }
     }
 
@@ -199,11 +250,21 @@ public class Cli implements Callable<Integer> {
         @Override
         public Integer call() {
             try {
-                byte[] key = resolveKey();
+                Path input = Paths.get(inputPath);
+                Path output = Paths.get(outputPath);
+
+                if (usePassword) {
+                    return decryptWithPassword(input, output);
+                }
+
+                if (keyPath == null) {
+                    System.err.println("Either --key or --password must be specified.");
+                    return 1;
+                }
+
+                byte[] key = loadKeyFromFile(keyPath);
                 try {
                     FileProcessor processor = new FileProcessor();
-                    Path input = Paths.get(inputPath);
-                    Path output = Paths.get(outputPath);
                     processor.decryptFile(input, output, key);
                     System.out.println("Decryption completed.");
                     return 0;
@@ -219,15 +280,51 @@ public class Cli implements Callable<Integer> {
             }
         }
 
-        private byte[] resolveKey() throws IOException {
-            if (usePassword) {
-                return readPasswordAndDeriveKey();
+        /**
+         * Handles password-based decryption by reading the salt from the container
+         * and deriving the key from the password and that salt.
+         */
+        private int decryptWithPassword(Path input, Path output) throws IOException {
+            java.io.Console console = System.console();
+            if (console == null) {
+                System.err.println("No console available for password input");
+                return 1;
             }
-            if (keyPath == null) {
-                System.err.println("Either --key or --password must be specified.");
-                System.exit(1);
+
+            if (!Files.exists(input)) {
+                System.err.println("Input file not found: " + input);
+                return 1;
             }
-            return loadKeyFromFile(keyPath);
+
+            // Read container to get the salt
+            byte[] containerData = Files.readAllBytes(input);
+            ContainerParser.ContainerData parsed;
+            try {
+                parsed = ContainerParser.parse(containerData);
+            } catch (Errors.ContainerFormatException e) {
+                System.err.println("Decryption failed: not a valid Cryptobox container");
+                return 1;
+            }
+
+            char[] password = console.readPassword("Enter decryption password: ");
+            try {
+                // Derive key from password + salt from container (same salt used during encryption)
+                byte[] derivedKey = KeyDerivation.deriveKeyFromPassword(password, parsed.salt);
+                try {
+                    byte[] plaintext = CryptoEngine.decrypt(parsed.ciphertext, derivedKey, parsed.iv);
+                    Files.createDirectories(output.getParent());
+                    Files.write(output, plaintext);
+                    System.out.println("Decryption completed.");
+                    return 0;
+                } finally {
+                    clearKey(derivedKey);
+                }
+            } catch (Errors.DecryptionException e) {
+                System.err.println("Decryption failed: wrong key or corrupted data");
+                return 1;
+            } finally {
+                java.util.Arrays.fill(password, '\0');
+            }
         }
     }
 
@@ -347,37 +444,6 @@ public class Cli implements Callable<Integer> {
         }
         String content = Files.readString(path).trim();
         return Base64.getDecoder().decode(content);
-    }
-
-    /**
-     * Reads a password from the console (no echo), confirms it,
-     * derives a 32-byte key using Argon2id via {@link KeyDerivation}.
-     *
-     * @return the derived 32-byte key
-     * @throws IOException if console is not available
-     */
-    static byte[] readPasswordAndDeriveKey() throws IOException {
-        java.io.Console console = System.console();
-        if (console == null) {
-            throw new IOException("No console available for password input");
-        }
-
-        char[] password1 = console.readPassword("Enter password: ");
-        char[] password2 = console.readPassword("Confirm password: ");
-
-        if (!java.util.Arrays.equals(password1, password2)) {
-            java.util.Arrays.fill(password1, '\0');
-            java.util.Arrays.fill(password2, '\0');
-            throw new Errors.KeyDerivationException("Passwords do not match");
-        }
-
-        java.util.Arrays.fill(password2, '\0');
-
-        try {
-            return KeyDerivation.deriveKeyFromPassword(password1, KeyDerivation.generateSalt());
-        } finally {
-            java.util.Arrays.fill(password1, '\0');
-        }
     }
 
     /**
