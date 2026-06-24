@@ -442,8 +442,18 @@ public class Cli implements Callable<Integer> {
         if (!Files.exists(path)) {
             throw new Errors.FileOperationException("Key file not found: " + keyPath);
         }
+        if (!Files.isReadable(path)) {
+            throw new Errors.FileOperationException("Key file not readable (permission denied): " + keyPath);
+        }
         String content = Files.readString(path).trim();
-        return Base64.getDecoder().decode(content);
+        if (content.isEmpty()) {
+            throw new Errors.FileOperationException("Key file is empty: " + keyPath);
+        }
+        try {
+            return Base64.getDecoder().decode(content);
+        } catch (IllegalArgumentException e) {
+            throw new Errors.FileOperationException("Key file contains invalid Base64 data: " + keyPath);
+        }
     }
 
     /**
