@@ -9,3 +9,5 @@
 .vscode/
 .idea/
 *.crbx
+!testdata/valid_containers/*.crbx
+!testdata/invalid_containers/*.crbx
