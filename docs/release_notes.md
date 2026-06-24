@@ -1,6 +1,6 @@
 # Release Notes
 
-## v1.0.0 (2024-01-15)
+## v1.0.0 (2026-06-24)
 
 Cryptobox Java v1.0.0 — Initial stable release of the local file encryption and decryption CLI tool.
 
