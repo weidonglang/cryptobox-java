@@ -41,8 +41,12 @@ public final class CryptoEngine {
      * @param key       32-byte AES key
      * @param iv        12-byte initialization vector
      * @return ciphertext including 16-byte GCM tag appended at the end
+     * @throws Errors.CryptoException if key size is not 32 bytes
      */
     public static byte[] encrypt(byte[] plaintext, byte[] key, byte[] iv) {
+        if (key.length != Config.KEY_SIZE) {
+            throw new Errors.CryptoException("Invalid key size: expected " + Config.KEY_SIZE + " bytes");
+        }
         try {
             SecretKey secretKey = new SecretKeySpec(key, "AES");
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
