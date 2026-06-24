@@ -1,0 +1,8 @@
+This is file B in the test directory.
+It contains different content from file A.
+
+Line 1: Encryption test data
+Line 2: Directory recursion test
+Line 3: Path with spaces test
+Line 4: Unicode support: こんにちは
+Line 5: Special chars: £€¥©®™
